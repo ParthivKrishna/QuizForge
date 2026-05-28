@@ -1,0 +1,119 @@
+.input-field{
+
+  width:100%;
+
+  background:
+    rgba(255,255,255,.04);
+
+  border:1px solid rgba(255,255,255,.08);
+
+  color:var(--text);
+
+  padding:16px 18px;
+
+  border-radius:16px;
+
+  outline:none;
+
+  font-size:1rem;
+
+  transition:.3s;
+
+  font-family:'DM Sans',sans-serif;
+}
+
+.input-field:focus{
+
+  border-color:
+    rgba(124,58,237,.7);
+
+  background:
+    rgba(124,58,237,.06);
+
+  box-shadow:
+    0 0 0 4px rgba(124,58,237,.12),
+    0 10px 30px rgba(124,58,237,.12);
+}
+
+.input-field textarea{
+
+  resize:vertical;
+}
+.input-field{
+
+  appearance:none;
+
+  -webkit-appearance:none;
+
+  -moz-appearance:none;
+}
+select option{
+
+  background:#1a1a28;
+
+  color:white;
+}
+select{
+
+  appearance:none;
+
+  -webkit-appearance:none;
+
+  -moz-appearance:none;
+}
+.checkbox-row{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:10px;
+
+  font-size:.95rem;
+
+  color:var(--muted);
+}
+.form-group{
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:12px;
+
+  margin-bottom:28px;
+}
+.form-group label{
+
+  font-size:.95rem;
+
+  font-weight:600;
+
+  color:#d1d5db;
+
+  letter-spacing:.3px;
+}
+
+.form-row{
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(auto-fit,minmax(320px,1fr));
+
+  gap:24px;
+}
+.field-actions{
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:space-between;
+
+  margin-top:10px;
+
+  gap:20px;
+
+  flex-wrap:wrap;
+}
