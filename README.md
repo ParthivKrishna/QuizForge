@@ -1,16 +1,63 @@
-# React + Vite
+# QuizForge
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Modern React-based dynamic quiz builder platform with customizable participant forms, CSV question import, and futuristic dashboard architecture.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+* Dynamic participant field builder
+* CSV question import system
+* Manual question creation
+* Question editing and deletion
+* Reusable React component architecture
+* Modern glassmorphism UI
+* Responsive dashboard layout
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+* React
+* Vite
+* React Router
+* JavaScript
+* CSS3
+
+---
+
+## Project Structure
+
+```bash
+src/
+├── components/
+├── layouts/
+├── pages/
+├── styles/
+```
+
+---
+
+## Installation
+
+```bash
+npm install
+npm run dev
+```
+
+---
+
+## Future Roadmap
+
+* Quiz publishing system
+* Participant dashboard
+* Authentication system
+* Live rankings
+* Backend integration
+* AI quiz generation
+
+---
+
+## Author
+
+Parthiv Krishna
