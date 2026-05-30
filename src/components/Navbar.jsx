@@ -1,8 +1,16 @@
 import { useNavigate } from 'react-router-dom'
 
+import { clearSession, getSession } from '../data/storage'
+
 function Navbar({ role }) {
 
   const navigate = useNavigate()
+  const session = getSession()
+
+  function logout() {
+    clearSession()
+    navigate('/')
+  }
 
   return (
 
@@ -18,12 +26,12 @@ function Navbar({ role }) {
       <div className="nav-right">
 
         <div className="role-badge">
-          {role}
+          {session?.name || role}
         </div>
 
         <button
           className="btn btn-secondary"
-          onClick={() => navigate('/')}
+          onClick={logout}
         >
           Logout
         </button>

@@ -10,6 +10,15 @@ function QuizSettings({
   coverImage,
   setCoverImage
 }) {
+  function handleCoverImage(event) {
+    const file = event.target.files[0]
+
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = () => setCoverImage(reader.result)
+    reader.readAsDataURL(file)
+  }
 
   return (
 
@@ -73,6 +82,29 @@ function QuizSettings({
           />
 
         </div>
+
+      </div>
+
+      <div className="form-group">
+
+        <label>Quiz Cover Photo</label>
+
+        <input
+          className="input-field"
+          type="file"
+          accept="image/*"
+          onChange={handleCoverImage}
+        />
+
+        {
+          coverImage && (
+            <img
+              className="cover-preview"
+              src={coverImage}
+              alt="Quiz cover preview"
+            />
+          )
+        }
 
       </div>
 

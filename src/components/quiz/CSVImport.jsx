@@ -11,15 +11,8 @@ function CSVImport({
         const [manualQuestion, setManualQuestion]
         = useState('')
 
-        const [option1, setOption1]
-        = useState('')
-
-        const [option2, setOption2]
-        = useState('')
-
-        const [option3, setOption3]
-        = useState('')
-
+        const [manualOptions, setManualOptions]
+        = useState(['', '', '', ''])
         const [correctAnswer, setCorrectAnswer]
         = useState('')
 
@@ -33,19 +26,15 @@ function CSVImport({
             const parsedQuestions =
             lines.slice(1).map((line) => {
 
-                const parts = line.split(',')
+                const parts = line.split(',').map((part) => part.trim())
 
                     return {
 
                     question: parts[0],
 
-                    options: [
-                        parts[1],
-                        parts[2],
-                        parts[3]
-                    ],
+                    options: parts.slice(1, -1),
 
-                    answer: parts[4]
+                    answer: parts[parts.length - 1]
                     }
             })
 
@@ -59,16 +48,18 @@ function CSVImport({
             setQuestions(updatedQuestions)
         }
         function addManualQuestion() {
+            const options =
+                manualOptions.filter((option) => option.trim())
+
+            if (!manualQuestion.trim() || options.length < 2 || !correctAnswer.trim()) {
+                return
+            }
 
              const newQuestion = {
 
                 question: manualQuestion,
 
-                options: [
-                option1,
-                option2,
-                option3
-                ],
+                options,
 
                 answer: correctAnswer
             }
@@ -79,10 +70,22 @@ function CSVImport({
             ])
 
             setManualQuestion('')
-            setOption1('')
-            setOption2('')
-            setOption3('')
+            setManualOptions(['', '', '', ''])
             setCorrectAnswer('')
+        }
+        function updateManualOption(index, value) {
+            const updatedOptions = [...manualOptions]
+            updatedOptions[index] = value
+            setManualOptions(updatedOptions)
+        }
+        function addManualOption() {
+            setManualOptions([...manualOptions, ''])
+        }
+        function removeManualOption(index) {
+            if (manualOptions.length <= 2) return
+            setManualOptions(
+                manualOptions.filter((_, optionIndex) => optionIndex !== index)
+            )
         }
         function updateQuestion(
             index,
@@ -120,57 +123,47 @@ function CSVImport({
 
                     </div>
 
-                    <div className="form-row">
+                    <div className="section-title-row compact-row">
 
-                        <div className="form-group">
+                        <h3>Options</h3>
 
-                            <label>Option 1</label>
-
-                            <input
-                                type="text"
-                                className="input-field"
-                                value={option1}
-                                onChange={(e) =>
-                                setOption1(e.target.value)
-                                }
-                                />
-
-                        </div>
-
-                        <div className="form-group">
-
-                            <label>Option 2</label>
-
-                            <input
-                                type="text"
-                                className="input-field"
-                                value={option2}
-                                onChange={(e) =>
-                                setOption2(e.target.value)
-                                }
-                            />
-
-                        </div>
+                        <button
+                            className="btn btn-secondary"
+                            type="button"
+                            onClick={addManualOption}
+                        >
+                            + Add Option
+                        </button>
 
                     </div>
 
+                    {
+                        manualOptions.map((option, index) => (
+                            <div className="option-row" key={index}>
+                                <div className="form-group">
+                                    <label>Option {index + 1}</label>
+                                    <input
+                                        type="text"
+                                        className="input-field"
+                                        value={option}
+                                        onChange={(e) =>
+                                            updateManualOption(index, e.target.value)
+                                        }
+                                    />
+                                </div>
+
+                                <button
+                                    className="btn btn-secondary option-remove"
+                                    type="button"
+                                    onClick={() => removeManualOption(index)}
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        ))
+                    }
+
                     <div className="form-row">
-
-                        <div className="form-group">
-
-                        <label>Option 3</label>
-
-                            <input
-                                type="text"
-                                className="input-field"
-                                value={option3}
-                                onChange={(e) =>
-                                setOption3(e.target.value)
-                                }
-                            />
-
-                        </div>
-
                         <div className="form-group">
 
                         <label>Correct Answer</label>
@@ -217,8 +210,8 @@ function CSVImport({
                     <textarea
                     rows="10"
                     className="input-field"
-                    placeholder={`Question,Option1,Option2,Option3,Answer
-                                    Capital of India,Delhi,Mumbai,Chennai,Delhi`}
+                    placeholder={`Question,Option1,Option2,Option3,Option4,Answer
+Capital of India,Delhi,Mumbai,Chennai,Kolkata,Delhi`}
 
                     value={csvData}
 
