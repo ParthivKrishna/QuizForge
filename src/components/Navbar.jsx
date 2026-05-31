@@ -1,15 +1,23 @@
 import { useNavigate } from 'react-router-dom'
 
-import { clearSession, getSession } from '../data/storage'
+import {
+  getCurrentUser,
+  logout
+} from '../utils/auth'
 
 function Navbar({ role }) {
 
   const navigate = useNavigate()
-  const session = getSession()
 
-  function logout() {
-    clearSession()
+  const session =
+    getCurrentUser()
+
+  function handleLogout() {
+
+    logout()
+
     navigate('/')
+
   }
 
   return (
@@ -31,7 +39,7 @@ function Navbar({ role }) {
 
         <button
           className="btn btn-secondary"
-          onClick={logout}
+          onClick={handleLogout}
         >
           Logout
         </button>
@@ -39,7 +47,9 @@ function Navbar({ role }) {
       </div>
 
     </nav>
+
   )
+
 }
 
 export default Navbar

@@ -14,6 +14,10 @@ const app = express()
 const quizRoutes =
   require('./routes/quizRoutes')
 
+const cors = require('cors')
+
+app.use(cors())
+
 app.use(express.json())
 app.use(
   '/api/quizzes',
@@ -52,3 +56,16 @@ app.get(
 
   }
 )
+
+app.use((err, req, res, next) => {
+
+  void next
+
+  console.error(err)
+
+  res.status(500).json({
+    success: false,
+    message: 'Internal server error'
+  })
+
+})

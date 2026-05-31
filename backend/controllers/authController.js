@@ -2,6 +2,8 @@ const users = []
 const jwt = require('jsonwebtoken')
 const JWT_SECRET = 'quizforge-secret-key'
 
+const bcrypt = require('bcrypt')
+
 function validatePassword(password) {
 
   let score = 0
@@ -58,89 +60,128 @@ function validatePassword(password) {
 
 }
 async function registerUser(req, res) {
-  const bcrypt = require('bcrypt')
-  
+
   const {
     name,
     email,
     password,
     role
   } = req.body
-  
-  
-  const emailRegex =/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+  const emailRegex =
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
   if (!name) {
+
     return res.status(400).json({
       success: false,
       message: 'Name is required'
     })
+
   }
 
   if (!email) {
+
     return res.status(400).json({
       success: false,
       message: 'Email is required'
     })
+
   }
+
   if (!emailRegex.test(email)) {
 
-  return res.status(400).json({
-    success: false,
-    message: 'Invalid email format'
-  })
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid email format'
+    })
 
-}
+  }
+
   if (!password) {
+
     return res.status(400).json({
       success: false,
       message: 'Password is required'
     })
+
   }
+
   const passwordCheck =
-  validatePassword(password)
+    validatePassword(password)
 
-if (!passwordCheck.valid) {
+  if (!passwordCheck.valid) {
 
-  return res.status(400).json({
-    success: false,
-    message: 'Weak password',
-    score: passwordCheck.score,
-    feedback: passwordCheck.feedback
-  })
+    return res.status(400).json({
+      success: false,
+      message: 'Weak password',
+      score: passwordCheck.score,
+      feedback: passwordCheck.feedback
+    })
 
-}
+  }
 
   if (!role) {
+
     return res.status(400).json({
       success: false,
       message: 'Role is required'
     })
+
   }
-  const existingUser = users.find(
-  user => user.email.toLowerCase() === email.toLowerCase()
-  )
+
+  const existingUser =
+    users.find(
+      user =>
+        user.email.toLowerCase() ===
+        email.toLowerCase()
+    )
+
   if (existingUser) {
+
     return res.status(400).json({
       success: false,
       message: 'User already exists'
     })
+
   }
+
   const hashedPassword =
-  await bcrypt.hash(password, 10)
+    await bcrypt.hash(
+      password,
+      10
+    )
 
   users.push({
-  name,
-  email,
-  password: hashedPassword,
-  role
+    name,
+    email,
+    password: hashedPassword,
+    role
   })
 
-  console.log(users)
+  const token = jwt.sign(
+    {
+      email,
+      role
+    },
+    JWT_SECRET,
+    {
+      expiresIn: '1d'
+    }
+  )
+
+  const newUser = {
+    name,
+    email,
+    role
+  }
 
   res.json({
     success: true,
-    message: 'User registered successfully'
+    message:
+      'User registered successfully',
+    token,
+    user: newUser
   })
 
 }

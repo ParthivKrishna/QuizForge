@@ -9,8 +9,8 @@ function authenticate(
   res,
   next
 ) {
-    console.log('Authorization Header:')
-  console.log(req.headers.authorization)
+    //console.log('Authorization Header:')
+  //console.log(req.headers.authorization)
 
   const authHeader =
     req.headers.authorization
@@ -31,15 +31,21 @@ function authenticate(
 
   try {
 
-    console.log(authHeader)
+   // console.log(authHeader)
 
     const decoded =
       jwt.verify(
         token,
         JWT_SECRET
       )
-
+      console.log('Decoded JWT:')
+      console.log(decoded)
     req.user = decoded
+
+console.log('REQ.USER SET TO:')
+console.log(req.user)
+
+next()
 
     next()
 

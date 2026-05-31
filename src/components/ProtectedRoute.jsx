@@ -1,19 +1,44 @@
 import { Navigate } from 'react-router-dom'
 
-import { getSession } from '../data/storage'
+import {
+  getCurrentUser
+} from '../utils/auth'
 
-function ProtectedRoute({ children, role }) {
-  const session = getSession()
+function ProtectedRoute({
+  children,
+  role
+}) {
 
-  if (!session) {
-    return <Navigate to="/" replace />
+  const user =
+    getCurrentUser()
+
+  if (!user) {
+
+    return (
+      <Navigate
+        to="/"
+        replace
+      />
+    )
+
   }
 
-  if (role && session.role !== role) {
-    return <Navigate to={`/${session.role}`} replace />
+  if (
+    role &&
+    user.role !== role
+  ) {
+
+    return (
+      <Navigate
+        to={`/${user.role}`}
+        replace
+      />
+    )
+
   }
 
   return children
+
 }
 
 export default ProtectedRoute

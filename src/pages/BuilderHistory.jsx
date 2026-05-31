@@ -1,14 +1,91 @@
-import { useNavigate } from 'react-router-dom'
+import {
+  useEffect,
+  useState
+} from 'react'
+
+import {
+  useNavigate
+} from 'react-router-dom'
 
 import QuizCard from '../components/QuizCard'
 import DashboardLayout from '../layouts/DashboardLayout'
-import { getBuilderQuizzes, getSession } from '../data/storage'
+
+import {
+  getCurrentUser
+} from '../utils/auth'
+
+import {
+  getBuilderQuizzes
+} from '../services/builderQuizService'
+
+import {
+  getToken
+} from '../utils/auth'
 
 function BuilderHistory() {
-  const navigate = useNavigate()
-  const session = getSession()
-  const quizzes = getBuilderQuizzes(session.id)
 
+  const navigate = useNavigate()
+
+  const session =
+    getCurrentUser()
+  const [quizzes, setQuizzes] =
+  useState([])
+
+  const [loading, setLoading] =
+    useState(true)
+
+  const token =
+    getToken()
+  useEffect(() => {
+
+    async function loadQuizzes() {
+
+      try {
+
+        const data =
+          await getBuilderQuizzes(
+            token
+          )
+
+        setQuizzes(
+          data.quizzes
+        )
+
+      } catch (err) {
+
+        console.error(err)
+
+      } finally {
+
+        setLoading(false)
+
+      }
+
+    }
+
+    loadQuizzes()
+
+  }, [token])
+  if (loading) {
+
+    return (
+
+      <DashboardLayout role="Builder">
+
+        <div className="dashboard-page">
+
+          <h2>
+            Loading Quizzes...
+          </h2>
+
+        </div>
+
+      </DashboardLayout>
+
+    )
+
+  }
+  
   return (
     <DashboardLayout role="Builder">
       <div className="dashboard-page">

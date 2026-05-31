@@ -1,18 +1,90 @@
-import { useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import {
+  useEffect,
+  useState
+} from 'react'
 
-import DashboardLayout from '../layouts/DashboardLayout'
-import { getQuizByRoom, getSession, saveAttempt } from '../data/storage'
+import {
+  useNavigate,
+  useParams
+} from 'react-router-dom'
+
+import DashboardLayout
+from '../layouts/DashboardLayout'
+
+import {
+  getCurrentUser,
+  getToken
+} from '../utils/auth'
+
+import {
+  getQuizByRoomId,
+  submitQuiz
+} from '../services/participantQuizService'
 
 function TakeQuiz() {
   const { roomId } = useParams()
   const navigate = useNavigate()
-  const session = getSession()
-  const quiz = useMemo(() => getQuizByRoom(roomId), [roomId])
+  const session = getCurrentUser()
+  const token =
+  getToken()
+  const [quiz, setQuiz] =
+  useState(null)
+
+  const [loading, setLoading] =
+  useState(true)
   const [info, setInfo] = useState({})
   const [answers, setAnswers] = useState({})
   const [result, setResult] = useState(null)
+  useEffect(() => {
 
+    async function loadQuiz() {
+
+      try {
+
+        const data =
+          await getQuizByRoomId(
+            roomId
+          )
+
+        setQuiz(
+          data.quiz
+        )
+
+      } catch (err) {
+
+        console.error(err)
+
+      } finally {
+
+        setLoading(false)
+
+      }
+
+    }
+
+    loadQuiz()
+
+  }, [roomId])
+
+  if (loading) {
+
+    return (
+
+      <DashboardLayout role="Participant">
+
+        <div className="dashboard-page">
+
+          <h2>
+            Loading Quiz...
+          </h2>
+
+        </div>
+
+      </DashboardLayout>
+
+    )
+
+  }
   if (!quiz) {
     return (
       <DashboardLayout role="Participant">
@@ -35,26 +107,47 @@ function TakeQuiz() {
     })
   }
 
-  function submitQuiz(event) {
+  async function submitQuizHandler(event) {
+
     event.preventDefault()
 
-    const score = quiz.questions.reduce((total, question, index) => {
-      return answers[index] === question.answer ? total + 1 : total
-    }, 0)
-    const percentage = Math.round((score / quiz.questions.length) * 100)
-    const saved = saveAttempt({
-      quizId: quiz.id,
-      quizTitle: quiz.title,
-      participantId: session.id,
-      participantName: session.name,
-      info,
-      answers,
-      score,
-      total: quiz.questions.length,
-      percentage
-    })
+    try {
 
-    setResult(saved)
+      const data =
+        await submitQuiz(
+          roomId,
+          token,
+          Object.values(
+            answers
+          )
+        )
+
+      setResult({
+
+        score:
+          data.score,
+
+        total:
+          data.totalQuestions,
+
+        percentage:
+          Math.round(
+            (
+              data.score /
+              data.totalQuestions
+            ) * 100
+          )
+
+      })
+
+    } catch (err) {
+
+      alert(
+        err.message
+      )
+
+    }
+
   }
 
   return (
@@ -84,7 +177,7 @@ function TakeQuiz() {
               </button>
             </div>
           ) : (
-            <form onSubmit={submitQuiz}>
+            <form onSubmit={submitQuizHandler}>
               {
                 quiz.fields.length > 0 && (
                   <div className="quiz-section">

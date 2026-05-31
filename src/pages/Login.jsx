@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { createUser, loginUser } from '../data/storage'
+import {
+  createUser,
+  loginUser
+} from '../services/authService'
 
 function Login() {
   const navigate = useNavigate()
@@ -22,16 +25,29 @@ function Login() {
     })
   }
 
-  function submitForm(event) {
+  async function submitForm(event){
     event.preventDefault()
 
     try {
-      const user =
+      const result =
         mode === 'signup'
-          ? createUser(form)
-          : loginUser(form.email, form.password)
-
-      navigate(`/${user.role}`)
+        ? await createUser(form)
+        : await loginUser(
+            form.email,
+            form.password
+          )
+      localStorage.setItem(
+      'token',
+      result.token
+      )
+      localStorage.setItem(
+      'user',
+      JSON.stringify(
+        result.user
+      )
+      )
+      console.log(result)
+      navigate(`/${result.user.role}`)
     } catch (err) {
       setError(err.message)
     }

@@ -12,11 +12,19 @@ from '../components/quiz/ParticipantFields'
 
 import CSVImport 
 from '../components/quiz/CSVImport'
-import { getSession, saveQuiz } from '../data/storage'
+import {
+  getCurrentUser,
+  getToken
+} from '../utils/auth'
+
+import {
+  createQuiz
+} from '../services/quizService'
 function CreateQuiz() {
 
     const navigate = useNavigate()
-    const session = getSession()
+    const session = getCurrentUser()
+    const token = getToken()
     const [title, setTitle] = useState('')
     const [subject, setSubject] = useState('')
     const [description, setDescription] = useState('')
@@ -26,26 +34,54 @@ function CreateQuiz() {
     const [csvData, setCsvData] = useState('')
     const [questions, setQuestions] = useState([])
     const [message, setMessage] = useState('')
+    
+    async function publishQuiz() {
 
-    function publishQuiz() {
-      if (!title.trim() || questions.length === 0) {
-        setMessage('Add a title and at least one question before publishing.')
+      if (
+        !title.trim() ||
+        questions.length === 0
+      ) {
+
+        setMessage(
+          'Add a title and at least one question before publishing.'
+        )
+
         return
+
       }
 
-      const quiz = saveQuiz({
-        builderId: session.id,
-        title,
-        subject,
-        description,
-        timer: Number(timer),
-        fields,
-        coverImage,
-        questions,
-        status: 'published'
-      })
+      try {
 
-      setMessage(`Quiz published. Room ID: ${quiz.roomId}`)
+        const result =
+          await createQuiz(
+            token,
+            {
+              title,
+              subject,
+              description,
+              timer:
+                Number(timer),
+
+              fields,
+
+              coverImage,
+
+              questions
+            }
+          )
+
+        setMessage(
+          `Quiz published. Room ID: ${result.quiz.roomId}`
+        )
+
+      } catch (err) {
+
+        setMessage(
+          err.message
+        )
+
+      }
+
     }
 
   return (
