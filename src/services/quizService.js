@@ -1,5 +1,7 @@
 const API_URL =
-  'http://localhost:5000/api/quizzes'
+  'https://quizforge-backend-ghqe.onrender.com/api/quizzes'
+  console.log('QUIZ SERVICE LOADED')
+console.log(API_URL)
 
 export async function createQuiz(
   token,

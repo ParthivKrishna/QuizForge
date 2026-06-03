@@ -1,5 +1,5 @@
 const API_URL =
-  'http://localhost:5000/api/auth'
+  'https://quizforge-backend-ghqe.onrender.com/api/auth'
 
 export async function loginUser(
   email,

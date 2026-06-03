@@ -213,11 +213,30 @@ async function getQuizByRoomId(req, res) {
       })
 
     }
+    const safeQuiz = {
+
+      ...quiz.toObject(),
+
+      questions:
+        quiz.questions.map(
+          q => ({
+
+            question:
+              q.question,
+
+            options:
+              q.options
+
+          })
+        )
+
+    }
 
     return res.json({
       success: true,
-      quiz
+      quiz: safeQuiz
     })
+
 
   } catch (error) {
 

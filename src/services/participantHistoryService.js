@@ -1,5 +1,5 @@
 const API_URL =
-  'http://localhost:5000/api/quizzes'
+  'https://quizforge-backend-ghqe.onrender.com/api/quizzes'
 
 export async function getMyAttempts(
   token
