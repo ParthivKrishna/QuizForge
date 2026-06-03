@@ -1,5 +1,11 @@
 const express = require('express')
+require('dotenv').config()
 
+const connectDB =
+  require('./config/db')
+
+console.log('connectDB =')
+console.log(connectDB)
 const {
   authenticate
 } = require(
@@ -15,6 +21,7 @@ const quizRoutes =
   require('./routes/quizRoutes')
 
 const cors = require('cors')
+
 
 app.use(cors())
 
@@ -36,14 +43,6 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes)
 
-app.listen(5000, () => {
-
-  console.log(
-    'Server running on port 5000'
-  )
-
-})
-
 app.get(
   '/api/profile',
   authenticate,
@@ -59,9 +58,11 @@ app.get(
 
 app.use((err, req, res, next) => {
 
-  void next
-
   console.error(err)
+
+  if (res.headersSent) {
+    return next(err)
+  }
 
   res.status(500).json({
     success: false,
@@ -69,3 +70,23 @@ app.use((err, req, res, next) => {
   })
 
 })
+
+async function startServer() {
+
+  console.log('Calling connectDB...')
+  await connectDB()
+
+  const PORT =
+    process.env.PORT || 5000
+
+  app.listen(PORT, () => {
+
+    console.log(
+      `Server running on port ${PORT}`
+    )
+
+  })
+
+}
+
+startServer()

@@ -11,10 +11,6 @@ import QuizCard from '../components/QuizCard'
 import DashboardLayout from '../layouts/DashboardLayout'
 
 import {
-  getCurrentUser
-} from '../utils/auth'
-
-import {
   getBuilderQuizzes
 } from '../services/builderQuizService'
 
@@ -26,8 +22,6 @@ function BuilderHistory() {
 
   const navigate = useNavigate()
 
-  const session =
-    getCurrentUser()
   const [quizzes, setQuizzes] =
   useState([])
 
@@ -107,7 +101,7 @@ function BuilderHistory() {
               <p className="empty-state">No quizzes published yet.</p>
             ) : (
               quizzes.map((quiz) => (
-                <QuizCard quiz={quiz} key={quiz.id}>
+                <QuizCard quiz={quiz} key={quiz._id || quiz.id}>
                   <div className="copy-link">
                     <input
                       className="input-field"

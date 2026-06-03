@@ -13,7 +13,6 @@ from '../components/quiz/ParticipantFields'
 import CSVImport 
 from '../components/quiz/CSVImport'
 import {
-  getCurrentUser,
   getToken
 } from '../utils/auth'
 
@@ -23,7 +22,6 @@ import {
 function CreateQuiz() {
 
     const navigate = useNavigate()
-    const session = getCurrentUser()
     const token = getToken()
     const [title, setTitle] = useState('')
     const [subject, setSubject] = useState('')

@@ -12,7 +12,6 @@ import DashboardLayout
 from '../layouts/DashboardLayout'
 
 import {
-  getCurrentUser,
   getToken
 } from '../utils/auth'
 
@@ -24,7 +23,6 @@ import {
 function TakeQuiz() {
   const { roomId } = useParams()
   const navigate = useNavigate()
-  const session = getCurrentUser()
   const token =
   getToken()
   const [quiz, setQuiz] =
@@ -117,9 +115,11 @@ function TakeQuiz() {
         await submitQuiz(
           roomId,
           token,
-          Object.values(
-            answers
-          )
+          quiz.questions.map(
+            (_, index) =>
+              answers[index] || ''
+          ),
+          info
         )
 
       setResult({

@@ -47,8 +47,6 @@ console.log(req.user)
 
 next()
 
-    next()
-
   } catch (error) {
 
   console.log('JWT Error:')

@@ -22,7 +22,7 @@ export async function getMyAttempts(
   if (!response.ok) {
 
     throw new Error(
-      data.message
+      data.message || 'Could not load attempts'
     )
 
   }

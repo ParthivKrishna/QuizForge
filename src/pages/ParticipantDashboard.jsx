@@ -11,7 +11,6 @@ import DashboardLayout
 from '../layouts/DashboardLayout'
 
 import {
-  getCurrentUser,
   getToken
 } from '../utils/auth'
 
@@ -27,9 +26,6 @@ function ParticipantDashboard() {
 
   const navigate =
     useNavigate()
-
-  const session =
-    getCurrentUser()
 
   const token =
     getToken()
@@ -49,22 +45,6 @@ function ParticipantDashboard() {
   useEffect(() => {
 
     async function loadAttempts() {
-      const data =
-  await getMyAttempts(
-    token
-  )
-
-console.log('API Response:')
-console.log(data)
-
-setAttempts(
-  data.attempts
-)
-
-console.log(
-  'Attempts:',
-  data.attempts
-)
 
       try {
 
@@ -241,16 +221,20 @@ console.log(
 
                     <div
                       className="question-card result-card"
-                      key={attempt.id}
+                      key={attempt._id || attempt.id}
                     >
 
                       <div>
 
                         <h3>
+                          {attempt.quizTitle || 'Quiz Attempt'}
+                        </h3>
+
+                        <p>
                           Room ID:
                           {' '}
                           {attempt.roomId}
-                        </h3>
+                        </p>
 
                       </div>
 
@@ -278,6 +262,7 @@ console.log(
                           {' '}
                           {
                             new Date(
+                              attempt.createdAt ||
                               attempt.submittedAt
                             ).toLocaleDateString()
                           }

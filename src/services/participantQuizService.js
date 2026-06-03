@@ -37,7 +37,7 @@ export async function getQuizByRoomId(
 
   if (!response.ok) {
     throw new Error(
-      data.message
+      data.message || 'Could not load quiz'
     )
   }
 
@@ -48,7 +48,8 @@ export async function getQuizByRoomId(
 export async function submitQuiz(
   roomId,
   token,
-  answers
+  answers,
+  participantInfo
 ) {
 
   const response =
@@ -67,7 +68,8 @@ export async function submitQuiz(
 
         body:
           JSON.stringify({
-            answers
+            answers,
+            participantInfo
           })
       }
     )
@@ -77,7 +79,7 @@ export async function submitQuiz(
 
   if (!response.ok) {
     throw new Error(
-      data.message
+      data.message || 'Could not submit quiz'
     )
   }
 

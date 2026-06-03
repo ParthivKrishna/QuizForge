@@ -20,6 +20,22 @@ function Navbar({ role }) {
 
   }
 
+  function goHome() {
+
+    if (session?.role === 'builder') {
+      navigate('/builder')
+      return
+    }
+
+    if (session?.role === 'participant') {
+      navigate('/participant')
+      return
+    }
+
+    navigate('/')
+
+  }
+
   return (
 
     <nav className="navbar">
@@ -32,6 +48,13 @@ function Navbar({ role }) {
       </div>
 
       <div className="nav-right">
+
+        <button
+          className="btn btn-secondary"
+          onClick={goHome}
+        >
+          Home
+        </button>
 
         <div className="role-badge">
           {session?.name || role}

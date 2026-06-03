@@ -1,7 +1,65 @@
-const quizzes = []
-const attempts = []
+const Quiz = require('../models/Quiz')
+const Attempt = require('../models/Attempt')
 
-function createQuiz(req, res) {
+function makeRoomId() {
+
+  return Math.random()
+    .toString(36)
+    .slice(2, 8)
+    .toUpperCase()
+
+}
+
+function normalizeFields(fields = []) {
+
+  if (typeof fields === 'string') {
+
+    try {
+      fields = JSON.parse(fields)
+    } catch {
+      return []
+    }
+
+  }
+
+  if (!Array.isArray(fields)) {
+    return []
+  }
+
+  return fields
+    .filter(field => field && field.label)
+    .map(field => ({
+      label: String(field.label).trim(),
+      type: field.type || 'text',
+      required: Boolean(field.required),
+      options: field.options || ''
+    }))
+
+}
+
+function normalizeQuestions(questions = []) {
+
+  if (!Array.isArray(questions)) {
+    return []
+  }
+
+  return questions
+    .filter(question => question && question.question)
+    .map(question => ({
+      question: String(question.question).trim(),
+      options: Array.isArray(question.options)
+        ? question.options
+          .map(option => String(option).trim())
+          .filter(Boolean)
+        : [],
+      answer: question.answer
+        ? String(question.answer).trim()
+        : ''
+    }))
+
+}
+
+async function createQuiz(req, res) {
 
   const {
     title,
@@ -13,7 +71,10 @@ function createQuiz(req, res) {
     coverImage
   } = req.body
 
-  if (!title) {
+  const normalizedQuestions =
+    normalizeQuestions(questions)
+
+  if (!title || !title.trim()) {
 
     return res.status(400).json({
       success: false,
@@ -22,229 +83,391 @@ function createQuiz(req, res) {
 
   }
 
-  const quiz = {
-
-    id: Date.now(),
-
-    builderId: req.user.email,
-
-    title,
-
-    subject,
-
-    description,
-
-    timer,
-
-    fields,
-
-    questions,
-
-    coverImage,
-
-    roomId:
-      Math.random()
-      .toString(36)
-      .slice(2, 8)
-      .toUpperCase(),
-
-    createdAt:
-      new Date().toISOString()
-
-  }
-
-  quizzes.push(quiz)
-
-  res.status(201).json({
-    success: true,
-    quiz
-  })
-
-}
-function getQuizzes(req, res) {
-
-  const builderQuizzes =
-    quizzes.filter(
-      quiz =>
-        quiz.builderId === req.user.email
-    )
-
-  res.json({
-    success: true,
-    quizzes: builderQuizzes
-  })
-
-}
-function getQuizByRoomId(req, res) {
-
-  const { roomId } = req.params
-
-  const quiz = quizzes.find(
-    quiz =>
-      quiz.roomId === roomId
-  )
-
-  if (!quiz) {
-
-    return res.status(404).json({
-      success: false,
-      message: 'Quiz not found'
-    })
-
-  }
-
-  res.json({
-    success: true,
-    quiz
-  })
-
-}
-function submitQuiz(req, res) {
-  const { roomId } = req.params
-
-  const {
-    answers
-  } = req.body
-
-  const quiz = quizzes.find(
-    quiz => quiz.roomId === roomId
-  )
-
-  if (!quiz) {
-
-    return res.status(404).json({
-      success: false,
-      message: 'Quiz not found'
-    })
-
-  }
-
-  if (!answers || typeof answers !== 'object') {
+  if (normalizedQuestions.length === 0) {
 
     return res.status(400).json({
       success: false,
-      message: 'Answers are required'
+      message: 'At least one question is required'
     })
 
   }
 
-  const existingAttempt =
-    attempts.find(
-      attempt =>
-        attempt.roomId === roomId &&
-        attempt.participantEmail === req.user.email
-    )
+  try {
 
-  if (existingAttempt) {
+    let quiz
 
-    return res.status(400).json({
-      success: false,
-      message:
-        'You have already submitted this quiz'
-    })
+    for (let attempt = 0; attempt < 5; attempt++) {
 
-  }
+      try {
 
-  let score = 0
+        quiz = await Quiz.create({
+          builderId: req.user.email,
+          title: title.trim(),
+          subject,
+          description,
+          timer,
+          fields: normalizeFields(fields),
+          questions: normalizedQuestions,
+          coverImage: typeof coverImage === 'string'
+            ? coverImage
+            : '',
+          roomId: makeRoomId()
+        })
 
-  quiz.questions.forEach(
-    (question, index) => {
+        break
 
-      if (
-        answers[index] ===
-        question.answer
-      ) {
+      } catch (error) {
 
-        score++
+        if (
+          error.code === 11000 &&
+          error.keyPattern?.roomId &&
+          attempt < 4
+        ) {
+          continue
+        }
+
+        throw error
 
       }
 
     }
-  )
 
-  const attempt = {
+    return res.status(201).json({
+      success: true,
+      quiz
+    })
 
-    id: Date.now(),
+  } catch (error) {
 
-    roomId,
+    console.error('CREATE QUIZ ERROR:', error)
 
-    participantEmail:
-      req.user.email,
-
-    answers,
-
-    score,
-
-    totalQuestions:
-      quiz.questions.length,
-
-    submittedAt:
-      new Date().toISOString()
-
-  }
-
-  attempts.push(attempt)
-
-  res.json({
-
-    success: true,
-
-    score,
-
-    totalQuestions:
-      quiz.questions.length
-
-  })
-
-}
-function getQuizResults(req, res) {
-
-  const { roomId } = req.params
-
-  const quiz = quizzes.find(
-    quiz => quiz.roomId === roomId
-  )
-
-  if (!quiz) {
-
-    return res.status(404).json({
+    return res.status(500).json({
       success: false,
-      message: 'Quiz not found'
+      message: error.message || 'Could not create quiz'
     })
 
   }
 
-  const results = attempts.filter(
-    attempt => attempt.roomId === roomId
-  )
+}
+async function getQuizzes(req, res) {
 
-  res.json({
-    success: true,
-    quiz: {
-      title: quiz.title,
-      roomId: quiz.roomId
-    },
-    totalAttempts: results.length,
-    results
-  })
+  try {
+
+    console.log(
+      'Fetching quizzes for:',
+      req.user.email
+    )
+
+    const builderQuizzes =
+      await Quiz.find({
+        builderId:
+          req.user.email
+      })
+
+    console.log(
+      'Found quizzes:',
+      builderQuizzes.length
+    )
+
+    return res.json({
+      success: true,
+      quizzes: builderQuizzes
+    })
+
+  } catch (error) {
+
+    console.error(
+      'GET QUIZZES ERROR:',
+      error
+    )
+
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    })
+
+  }
 
 }
-function getMyAttempts(
+
+async function getQuizByRoomId(req, res) {
+
+  try {
+
+    const { roomId } = req.params
+
+    console.log('Looking for room:', roomId)
+
+    const quiz =
+      await Quiz.findOne({
+        roomId
+      })
+
+    console.log('Quiz found:', quiz)
+
+    if (!quiz) {
+
+      return res.status(404).json({
+        success: false,
+        message: 'Quiz not found'
+      })
+
+    }
+
+    return res.json({
+      success: true,
+      quiz
+    })
+
+  } catch (error) {
+
+    console.error(error)
+
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    })
+
+  }
+
+}
+async function submitQuiz(req, res) {
+
+  const { roomId } = req.params
+
+  const {
+    answers,
+    participantInfo
+  } = req.body
+
+  try {
+
+    const quiz =
+      await Quiz.findOne({
+        roomId
+      })
+
+    if (!quiz) {
+
+      return res.status(404).json({
+        success: false,
+        message: 'Quiz not found'
+      })
+
+    }
+
+    if (!answers || typeof answers !== 'object') {
+
+      return res.status(400).json({
+        success: false,
+        message: 'Answers are required'
+      })
+
+    }
+
+    const existingAttempt =
+      await Attempt.findOne({
+        roomId,
+        participantEmail:
+          req.user.email
+      })
+
+    if (existingAttempt) {
+
+      return res.status(400).json({
+        success: false,
+        message:
+          'You have already submitted this quiz'
+      })
+
+    }
+
+    let score = 0
+
+    const detailedAnswers =
+      quiz.questions.map(
+        (question, index) => {
+
+          const selectedAnswer =
+            answers[index] || ''
+
+          const isCorrect =
+            selectedAnswer ===
+            question.answer
+
+          if (isCorrect) {
+            score++
+          }
+
+          return {
+            question:
+              question.question,
+            selectedAnswer,
+            correctAnswer:
+              question.answer,
+            isCorrect
+          }
+
+        }
+      )
+
+    const cleanedInfo = {}
+
+    if (
+      participantInfo &&
+      typeof participantInfo === 'object' &&
+      !Array.isArray(participantInfo)
+    ) {
+
+      Object.entries(participantInfo).forEach(
+        ([key, value]) => {
+
+          cleanedInfo[key] =
+            value === undefined ||
+            value === null
+              ? ''
+              : String(value)
+
+        }
+      )
+
+    }
+
+    const attempt =
+      await Attempt.create({
+        quizId: quiz._id,
+        roomId,
+        quizTitle: quiz.title,
+        participantEmail:
+          req.user.email,
+        participantInfo:
+          cleanedInfo,
+        answers:
+          detailedAnswers,
+        score,
+        totalQuestions:
+          quiz.questions.length
+      })
+
+    return res.json({
+
+      success: true,
+
+      score,
+
+      totalQuestions:
+        quiz.questions.length,
+
+      attempt
+
+    })
+
+  } catch (error) {
+
+    console.error('SUBMIT QUIZ ERROR:', error)
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Could not submit quiz'
+    })
+
+  }
+
+}
+async function getQuizResults(req, res) {
+
+  const { roomId } = req.params
+
+  try {
+
+    const quiz =
+      await Quiz.findOne({
+        roomId
+      })
+
+    if (!quiz) {
+
+      return res.status(404).json({
+        success: false,
+        message: 'Quiz not found'
+      })
+
+    }
+
+    if (
+      quiz.builderId !==
+      req.user.email
+    ) {
+
+      return res.status(403).json({
+        success: false,
+        message: 'You can only view results for your own quizzes'
+      })
+
+    }
+
+    const results =
+      await Attempt.find({
+        roomId
+      }).sort({
+        score: -1,
+        createdAt: 1
+      })
+
+    return res.json({
+      success: true,
+      quiz: {
+        title: quiz.title,
+        roomId: quiz.roomId,
+        fields: quiz.fields,
+        questions: quiz.questions
+      },
+      totalAttempts: results.length,
+      results
+    })
+
+  } catch (error) {
+
+    console.error('GET QUIZ RESULTS ERROR:', error)
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Could not load quiz results'
+    })
+
+  }
+
+}
+async function getMyAttempts(
   req,
   res
 ) {
 
-  const userAttempts =
-    attempts.filter(
-      attempt =>
-        attempt.participantEmail ===
-        req.user.email
-    )
+  try {
 
-  res.json({
-    success: true,
-    attempts: userAttempts
-  })
+    const userAttempts =
+      await Attempt.find({
+        participantEmail:
+          req.user.email
+      }).sort({
+        createdAt: -1
+      })
+
+    return res.json({
+      success: true,
+      attempts: userAttempts
+    })
+
+  } catch (error) {
+
+    console.error('GET MY ATTEMPTS ERROR:', error)
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Could not load attempts'
+    })
+
+  }
 
 }
 module.exports = {

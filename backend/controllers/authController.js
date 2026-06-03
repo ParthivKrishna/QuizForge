@@ -1,7 +1,8 @@
-const users = []
+//const users = []
 const jwt = require('jsonwebtoken')
 const JWT_SECRET = 'quizforge-secret-key'
-
+const User =
+  require('../models/User')
 const bcrypt = require('bcrypt')
 
 function validatePassword(password) {
@@ -130,13 +131,11 @@ async function registerUser(req, res) {
 
   }
 
-  const existingUser =
-    users.find(
-      user =>
-        user.email.toLowerCase() ===
-        email.toLowerCase()
-    )
-
+ const existingUser =
+  await User.findOne({
+    email:
+      email.toLowerCase()
+  })
   if (existingUser) {
 
     return res.status(400).json({
@@ -152,11 +151,19 @@ async function registerUser(req, res) {
       10
     )
 
-  users.push({
+  const user =
+  await User.create({
+
     name,
-    email,
-    password: hashedPassword,
+
+    email:
+      email.toLowerCase(),
+
+    password:
+      hashedPassword,
+
     role
+
   })
 
   const token = jwt.sign(
@@ -171,10 +178,14 @@ async function registerUser(req, res) {
   )
 
   const newUser = {
-    name,
-    email,
-    role
-  }
+
+  name: user.name,
+
+  email: user.email,
+
+  role: user.role
+
+}
 
   res.json({
     success: true,
@@ -199,11 +210,11 @@ async function loginUser(req, res) {
     })
 
   }
-  const user = users.find(
-    user =>
-      user.email.toLowerCase() ===
-    email.toLowerCase()
-  )
+  const user =
+  await User.findOne({
+    email:
+      email.toLowerCase()
+  })
   
   
   if (!user) {

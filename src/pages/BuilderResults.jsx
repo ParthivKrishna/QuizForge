@@ -6,7 +6,6 @@ import {
 import DashboardLayout from '../layouts/DashboardLayout'
 
 import {
-  getCurrentUser,
   getToken
 } from '../utils/auth'
 
@@ -19,9 +18,6 @@ import {
 } from '../services/resultsService'
 
 function BuilderResults() {
-
-  const session =
-    getCurrentUser()
 
   const token =
     getToken()
@@ -45,7 +41,6 @@ function BuilderResults() {
           await getBuilderQuizzes(
             token
           )
-          console.log(quizData)
 
         setQuizzes(
           quizData.quizzes
@@ -63,7 +58,6 @@ function BuilderResults() {
               quiz.roomId,
               token
             )
-            console.log(resultData)
 
           resultMap[
             quiz.roomId
@@ -111,6 +105,17 @@ function BuilderResults() {
 
   }
 
+  function getInfoEntries(info) {
+
+    if (!info || typeof info !== 'object') {
+      return []
+    }
+
+    return Object.entries(info)
+      .filter(([, value]) => value)
+
+  }
+
   return (
 
     <DashboardLayout role="Builder">
@@ -153,7 +158,7 @@ function BuilderResults() {
 
                 <div
                   className="quiz-section"
-                  key={quiz.id}
+                  key={quiz._id || quiz.id}
                 >
 
                   <div className="section-title-row">
@@ -181,106 +186,176 @@ function BuilderResults() {
 
                     ) : (
 
-                      <div className="table-wrap">
+                      <div className="attempt-list">
 
-                        <table className="results-table">
+                        {
+                          ranking.map(
+                            (
+                              attempt,
+                              index
+                            ) => {
 
-                          <thead>
+                              const accuracy =
+                                Math.round(
+                                  (
+                                    attempt.score /
+                                    attempt.totalQuestions
+                                  ) * 100
+                                )
 
-                            <tr>
+                              const infoEntries =
+                                getInfoEntries(
+                                  attempt.participantInfo
+                                )
 
-                              <th>
-                                Rank
-                              </th>
+                              return (
 
-                              <th>
-                                Participant
-                              </th>
+                                <div
+                                  className="attempt-card"
+                                  key={attempt._id || attempt.id}
+                                >
 
-                              <th>
-                                Score
-                              </th>
+                                  <div className="attempt-header">
 
-                              <th>
-                                Accuracy
-                              </th>
+                                    <div>
 
-                              <th>
-                                Submitted
-                              </th>
+                                      <h3>
+                                        #{index + 1}
+                                        {' '}
+                                        {attempt.participantEmail}
+                                      </h3>
 
-                            </tr>
-
-                          </thead>
-
-                          <tbody>
-
-                            {
-                              ranking.map(
-                                (
-                                  attempt,
-                                  index
-                                ) => {
-
-                                  const accuracy =
-                                    Math.round(
-                                      (
-                                        attempt.score /
-                                        attempt.totalQuestions
-                                      ) * 100
-                                    )
-
-                                  return (
-
-                                    <tr
-                                      key={attempt.id}
-                                    >
-
-                                      <td>
-                                        {index + 1}
-                                      </td>
-
-                                      <td>
-                                        {
-                                          attempt.participantEmail
-                                        }
-                                      </td>
-
-                                      <td>
-                                        {
-                                          attempt.score
-                                        }
-                                        /
-                                        {
-                                          attempt.totalQuestions
-                                        }
-                                      </td>
-
-                                      <td>
-                                        {
-                                          accuracy
-                                        }%
-                                      </td>
-
-                                      <td>
+                                      <p>
+                                        Submitted
+                                        {' '}
                                         {
                                           new Date(
+                                            attempt.createdAt ||
                                             attempt.submittedAt
                                           ).toLocaleString()
                                         }
-                                      </td>
+                                      </p>
 
-                                    </tr>
+                                    </div>
 
-                                  )
+                                    <div className="score-pill">
+                                      {attempt.score}
+                                      /
+                                      {attempt.totalQuestions}
+                                      {' '}
+                                      ({accuracy}%)
+                                    </div>
 
-                                }
+                                  </div>
+
+                                  <div className="result-detail-grid">
+
+                                    <div>
+
+                                      <h4>
+                                        Participant Info
+                                      </h4>
+
+                                      {
+                                        infoEntries.length === 0 ? (
+
+                                          <p className="empty-state">
+                                            No participant fields were submitted.
+                                          </p>
+
+                                        ) : (
+
+                                          <div className="detail-list">
+
+                                            {
+                                              infoEntries.map(
+                                                ([label, value]) => (
+
+                                                  <div
+                                                    className="detail-row"
+                                                    key={label}
+                                                  >
+                                                    <span>
+                                                      {label}
+                                                    </span>
+                                                    <strong>
+                                                      {value}
+                                                    </strong>
+                                                  </div>
+
+                                                )
+                                              )
+                                            }
+
+                                          </div>
+
+                                        )
+                                      }
+
+                                    </div>
+
+                                    <div>
+
+                                      <h4>
+                                        Answers
+                                      </h4>
+
+                                      <div className="answer-review-list">
+
+                                        {
+                                          attempt.answers.map(
+                                            (
+                                              answer,
+                                              answerIndex
+                                            ) => (
+
+                                              <div
+                                                className={
+                                                  answer.isCorrect
+                                                    ? 'answer-review correct'
+                                                    : 'answer-review incorrect'
+                                                }
+                                                key={`${answer.question}-${answerIndex}`}
+                                              >
+
+                                                <p>
+                                                  {answerIndex + 1}.
+                                                  {' '}
+                                                  {answer.question}
+                                                </p>
+
+                                                <div>
+                                                  <span>
+                                                    Participant:
+                                                    {' '}
+                                                    {answer.selectedAnswer || 'No answer'}
+                                                  </span>
+                                                  <span>
+                                                    Correct:
+                                                    {' '}
+                                                    {answer.correctAnswer}
+                                                  </span>
+                                                </div>
+
+                                              </div>
+
+                                            )
+                                          )
+                                        }
+
+                                      </div>
+
+                                    </div>
+
+                                  </div>
+
+                                </div>
+
                               )
+
                             }
-
-                          </tbody>
-
-                        </table>
+                          )
+                        }
 
                       </div>
 

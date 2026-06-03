@@ -1,37 +1,69 @@
+import {
+  useEffect,
+  useState
+} from 'react'
+
 import { useNavigate } from 'react-router-dom'
 
 import DashboardCard from '../components/DashboardCard'
 import DashboardLayout from '../layouts/DashboardLayout'
 
 import {
-  getAttemptsForQuiz,
-  getBuilderQuizzes
-} from '../data/storage'
+  getCurrentUser,
+  getToken
+} from '../utils/auth'
 
 import {
-  getCurrentUser
-} from '../utils/auth'
+  getBuilderQuizzes
+} from '../services/builderQuizService'
 
 function BuilderDashboard() {
 
   const navigate = useNavigate()
 
   const user = getCurrentUser()
+  const token = getToken()
+
+  const [quizzes, setQuizzes] =
+    useState([])
+
+  const [loading, setLoading] =
+    useState(true)
+
+  useEffect(() => {
+
+    async function loadQuizzes() {
+
+      try {
+
+        const data =
+          await getBuilderQuizzes(
+            token
+          )
+
+        setQuizzes(
+          data.quizzes
+        )
+
+      } catch (err) {
+
+        console.error(err)
+
+      } finally {
+
+        setLoading(false)
+
+      }
+
+    }
+
+    loadQuizzes()
+
+  }, [token])
 
   if (!user) {
     return null
   }
-
-  const quizzes =
-    getBuilderQuizzes(user.email)
-
-  const attempts =
-    quizzes.flatMap(
-      quiz =>
-        getAttemptsForQuiz(
-          quiz.id
-        )
-    )
 
   return (
 
@@ -69,7 +101,11 @@ function BuilderDashboard() {
 
           <DashboardCard
             title="Quiz History"
-            description={`${quizzes.length} published quiz${quizzes.length === 1 ? '' : 'zes'}`}
+            description={
+              loading
+                ? 'Loading published quizzes...'
+                : `${quizzes.length} published quiz${quizzes.length === 1 ? '' : 'zes'}`
+            }
             icon="H"
             accent="rgba(6,182,212,.2)"
             onClick={() =>
@@ -79,7 +115,7 @@ function BuilderDashboard() {
 
           <DashboardCard
             title="Results & Rankings"
-            description="View leaderboard and participant scores"
+            description="View participant fields, answers, and scores"
             icon="#"
             accent="rgba(16,185,129,.2)"
             onClick={() =>
