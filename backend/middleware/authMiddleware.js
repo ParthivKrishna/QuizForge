@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken')
 
-const JWT_SECRET =
-  'quizforge-secret-key'
+const JWT_SECRET = process.env.JWT_SECRET
 
 
 function authenticate(
@@ -36,7 +35,7 @@ function authenticate(
     const decoded =
       jwt.verify(
         token,
-        JWT_SECRET
+        process.env.JWT_SECRET
       )
       console.log('Decoded JWT:')
       console.log(decoded)

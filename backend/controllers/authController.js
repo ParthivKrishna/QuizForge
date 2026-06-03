@@ -1,6 +1,6 @@
 //const users = []
 const jwt = require('jsonwebtoken')
-const JWT_SECRET = 'quizforge-secret-key'
+const JWT_SECRET = process.env.JWT_SECRET
 const User =
   require('../models/User')
 const bcrypt = require('bcrypt')
@@ -171,7 +171,7 @@ async function registerUser(req, res) {
       email,
       role
     },
-    JWT_SECRET,
+    process.env.JWT_SECRET,
     {
       expiresIn: '1d'
     }
@@ -243,7 +243,7 @@ const token = jwt.sign(
     email: user.email,
     role: user.role
   },
-  JWT_SECRET,
+  process.env.JWT_SECRET,
   {
     expiresIn: '1d'
   }
