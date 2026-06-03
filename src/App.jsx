@@ -8,7 +8,17 @@ import ParticipantDashboard from './pages/ParticipantDashboard'
 import BuilderHistory from './pages/BuilderHistory'
 import BuilderResults from './pages/BuilderResults'
 import TakeQuiz from './pages/TakeQuiz'
+import { useEffect } from 'react'
+
 function App() {
+  useEffect(() => {
+
+    fetch(
+      'https://quizforge-backend-ghqe.onrender.com/api/health'
+    ).catch(() => {})
+
+  }, [])
+
   return (
     <Routes>
       <Route path="/" element={<Login />} />
